@@ -1,0 +1,94 @@
+from xmlrpc.client import FastUnmarshaller
+from autoattack import AutoAttack
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torchvision
+import torch.optim as optim
+from torchvision import transforms
+from models.wideresnet import WideResNet
+import os
+
+# settings
+device = torch.device("cpu")
+kwargs = {}
+
+
+# setup data loader
+transform_train = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+])
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+])
+
+trainset = torchvision.datasets.CIFAR10(root='../data', train=True, download=True, transform=transform_train)
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=1, shuffle=FastUnmarshaller, **kwargs)
+testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_test)
+test_loader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle=False, **kwargs)
+
+model = WideResNet()
+model.load_state_dict(torch.load('/Users/olgavrou/Documents/NYU/Project/auto-attack/model_cifar_wrn.pt', map_location=torch.device('cpu')))
+
+model.eval()
+import math
+import numpy as np
+
+outputs = ['libsvm_cat_train.dat', 'libsvm_cat_test.dat']
+input_dirs = ['adv_train_dat', 'adv_dat']
+
+cat = 3
+classes = [cat]
+# going to pick that cat is +1 and anything else is -1
+
+for i, outfile in enumerate(outputs):
+    total = 0
+    acc = 0
+    datapoints = len(os.listdir(input_dirs[i]))
+    with open(outfile, 'w') as libsvm_data:
+        for batch_idx, (data, target) in enumerate(test_loader):
+            data, target = data.to(device), target.to(device)
+            print(f"bi: {batch_idx}")
+            if batch_idx >= datapoints:
+                break
+            x_adv = torch.tensor(torch.load(f'{input_dirs[i]}/adversarial-data_{batch_idx}.pt'))
+            data = x_adv
+
+            pred_probab = model(data)
+            y_pred1 = pred_probab.argmax(1)
+            label = target.tolist()[0]
+
+            # if label not in classes:
+            #     continue
+
+            # get the accuracy of the model on the cat label (as if we are doing binary classification)
+            total = total + 1
+            if (label == cat and label == y_pred1.tolist()[0]) or (label != cat and y_pred1.tolist()[0] != cat):
+                acc = acc + 1
+
+            pp = pred_probab.tolist()[0]
+            label = None
+            if label == cat:
+                label = "+1"
+            else:
+                label = "-1"
+
+            label_features = f"{label} 1:{pp[0]} 2:{pp[1]} 3:{pp[2]} 4:{pp[3]} 5:{pp[4]} 6:{pp[5]} 7:{pp[6]} 8:{pp[7]} 9:{pp[8]} 10:{pp[9]}"
+
+            libsvm_data.write(label_features)
+            libsvm_data.write("\n")
+    if 'train' in input_dirs[i]:
+        print(f"TRADES nn model accuracy for cat class: {(float(acc)/float(total)) * 100}%")
+
+        
+
+# ./libsvm/svm-scale -s range libsvm_cat_train.dat > libsvm_cat_train.dat.scale 
+# ./libsvm/svm-scale -s range libsvm_cat_test.dat > libsvm_cat_test.dat.scale
+
+# run some hyper parameter tuning with libsvm using the same scripts and logic from homework 2 (https://github.com/olgavrou/FML-HW2)
+
+# ./libsvm/svm-train -t 1 -d 1 -c 20 -v 5 libsvm_cat_train.dat.scale
+# ./libsvm/svm-train -t 1 -d 1 -c 20 libsvm_cat_train.dat.scale
+# ./libsvm/svm-predict libsvm_cat_test.dat.scale libsvm_cat_train.dat.scale.model out
