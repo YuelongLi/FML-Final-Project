@@ -69,13 +69,13 @@ for i, outfile in enumerate(outputs):
                 acc = acc + 1
 
             pp = pred_probab.tolist()[0]
-            label = None
+            libsvm_label = None
             if label == cat:
-                label = "+1"
+                libsvm_label = "+1"
             else:
-                label = "-1"
+                libsvm_label = "-1"
 
-            label_features = f"{label} 1:{pp[0]} 2:{pp[1]} 3:{pp[2]} 4:{pp[3]} 5:{pp[4]} 6:{pp[5]} 7:{pp[6]} 8:{pp[7]} 9:{pp[8]} 10:{pp[9]}"
+            label_features = f"{libsvm_label} 1:{pp[0]} 2:{pp[1]} 3:{pp[2]} 4:{pp[3]} 5:{pp[4]} 6:{pp[5]} 7:{pp[6]} 8:{pp[7]} 9:{pp[8]} 10:{pp[9]}"
 
             libsvm_data.write(label_features)
             libsvm_data.write("\n")

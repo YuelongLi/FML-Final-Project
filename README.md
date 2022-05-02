@@ -20,7 +20,7 @@ Auto-attack scripts are used to generate adversarial data that will then be pass
 - To generate the adversarial data run `gen_adv_data.py` which will generate 2000 training and 200 test data adversarial data points in tensor format
 - To generate the data used in the libSVM step run `gen_cat_libsvm_data.py`. This will take the adversarial data, pass them through the loaded TRADES neural network and get back the raw predictions. It will use the label to separate the data into CAT (+1) and non-CAT labels (-1). 
 - We then scaled and ran some hyper parameter tuning for libSVM based on the method and scripts from homework 2 see [here](https://github.com/olgavrou/FML-HW2)
-- Then we trained and tested the test data using libSVM:
+- Then we trained and tested the test data using libSVM run `run_svm.sh` to get the below steps:
  - ./libsvm/svm-scale -s range libsvm_cat_train.dat > libsvm_cat_train.dat.scale
  - ./libsvm/svm-scale -s range libsvm_cat_test.dat > libsvm_cat_test.dat.scale
  - do some hyper parameter tuning
