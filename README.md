@@ -11,7 +11,7 @@ Auto-attack scripts are used to generate adversarial data that will then be pass
 # Dependencies
 
 - clone libsvm in the work directory: https://github.com/cjlin1/libsvm
-- download the CIFAR-10 model and place it in the work directory [download link](https://drive.google.com/file/d/10sHvaXhTNZGz618QmD5gSOAjO3rMzV33/view?usp=sharing)
+- download the TRADES CIFAR-10 model and place it in the work directory [download link](https://drive.google.com/file/d/10sHvaXhTNZGz618QmD5gSOAjO3rMzV33/view?usp=sharing)
 - pip install numpy torch torchvision plotly
 
 # Instructions

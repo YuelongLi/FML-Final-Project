@@ -1,10 +1,13 @@
 #!/bin/bash
 
-./libsvm/svm-scale -s range libsvm_cat_train.dat > libsvm_cat_train.dat.scale 
-./libsvm/svm-scale -s range libsvm_cat_test.dat > libsvm_cat_test.dat.scale
+named_classes=("airplane" "automobile" "bird" "cat" "deer" "dog" "frog" "horse" "ship" "truck")
+for i in $(seq 0 9); do
+    class_name=${named_classes[i]}
 
-# run some hyper parameter tuning with libsvm using the same scripts and logic from homework 2 (https://github.com/olgavrou/FML-HW2)
+    ./libsvm/svm-scale -s range_"$class_name" libsvm_"$class_name"_train.dat > libsvm_"$class_name"_train.dat.scale 
+    ./libsvm/svm-scale -s range_"$class_name" libsvm_"$class_name"_test.dat > libsvm_"$class_name"_test.dat.scale
 
-./libsvm/svm-train -t 1 -d 1 -c 20 -v 5 libsvm_cat_train.dat.scale
-./libsvm/svm-train -t 1 -d 1 -c 20 libsvm_cat_train.dat.scale
-./libsvm/svm-predict libsvm_cat_test.dat.scale libsvm_cat_train.dat.scale.model out
+    # ./libsvm/svm-train -t 1 -d 1 -c 20 -v 5 libsvm_"$class_name"_train.dat.scale
+    ./libsvm/svm-train -t 1 -d 1 -c 20 libsvm_"$class_name"_train.dat.scale
+    ./libsvm/svm-predict libsvm_"$class_name"_test.dat.scale libsvm_"$class_name"_train.dat.scale.model out_"$class_name"
+done

@@ -36,48 +36,46 @@ model.eval()
 import math
 import numpy as np
 
-outputs = ['libsvm_cat_train.dat', 'libsvm_cat_test.dat']
+outputs = ['train.dat', 'test.dat']
 input_dirs = ['adv_train_dat', 'adv_dat']
 
-cat = 3
-classes = [cat]
-# going to pick that cat is +1 and anything else is -1
+named_classes = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
 
-for i, outfile in enumerate(outputs):
-    total = 0
-    acc = 0
-    datapoints = len(os.listdir(input_dirs[i]))
-    with open(outfile, 'w') as libsvm_data:
-        for batch_idx, (data, target) in enumerate(test_loader):
-            data, target = data.to(device), target.to(device)
-            print(f"bi: {batch_idx}")
-            if batch_idx >= datapoints:
-                break
-            x_adv = torch.tensor(torch.load(f'{input_dirs[i]}/adversarial-data_{batch_idx}.pt'))
-            data = x_adv
+for active_class in range(0,10):
+    # going to pick that active_class is +1 and anything else is -1
 
-            pred_probab = model(data)
-            y_pred1 = pred_probab.argmax(1)
-            label = target.tolist()[0]
+    for i, outfile in enumerate(outputs):
+        total = 0
+        acc = 0
+        datapoints = len(os.listdir(input_dirs[i]))
+        with open("libsvm_" + named_classes[active_class] + "_" + outfile, 'w') as libsvm_data:
+            for batch_idx, (data, target) in enumerate(test_loader):
+                data, target = data.to(device), target.to(device)
+                # print(f"bi: {batch_idx}")
+                if batch_idx >= datapoints:
+                    break
+                x_adv = torch.tensor(torch.load(f'{input_dirs[i]}/adversarial-data_{batch_idx}.pt'))
+                data = x_adv
 
-            # if label not in classes:
-            #     continue
+                pred_probab = model(data)
+                y_pred1 = pred_probab.argmax(1)
+                label = target.tolist()[0]
 
-            # get the accuracy of the model on the cat label (as if we are doing binary classification)
-            total = total + 1
-            if (label == cat and label == y_pred1.tolist()[0]) or (label != cat and y_pred1.tolist()[0] != cat):
-                acc = acc + 1
+                # get the accuracy of the model on the cat label (as if we are doing binary classification)
+                total = total + 1
+                if (label == active_class and label == y_pred1.tolist()[0]) or (label != active_class and y_pred1.tolist()[0] != active_class):
+                    acc = acc + 1
 
-            pp = pred_probab.tolist()[0]
-            libsvm_label = None
-            if label == cat:
-                libsvm_label = "+1"
-            else:
-                libsvm_label = "-1"
+                pp = pred_probab.tolist()[0]
+                libsvm_label = None
+                if label == active_class:
+                    libsvm_label = "+1"
+                else:
+                    libsvm_label = "-1"
 
-            label_features = f"{libsvm_label} 1:{pp[0]} 2:{pp[1]} 3:{pp[2]} 4:{pp[3]} 5:{pp[4]} 6:{pp[5]} 7:{pp[6]} 8:{pp[7]} 9:{pp[8]} 10:{pp[9]}"
+                label_features = f"{libsvm_label} 1:{pp[0]} 2:{pp[1]} 3:{pp[2]} 4:{pp[3]} 5:{pp[4]} 6:{pp[5]} 7:{pp[6]} 8:{pp[7]} 9:{pp[8]} 10:{pp[9]}"
 
-            libsvm_data.write(label_features)
-            libsvm_data.write("\n")
-    if 'train' in input_dirs[i]:
-        print(f"TRADES nn model accuracy for cat class: {(float(acc)/float(total)) * 100}%")
+                libsvm_data.write(label_features)
+                libsvm_data.write("\n")
+        if 'train' in input_dirs[i]:
+            print(f"TRADES nn model accuracy for {named_classes[active_class]} class: {(float(acc)/float(total)) * 100}%")
