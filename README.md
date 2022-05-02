@@ -5,7 +5,7 @@ It also contains some scripts and models from the [TRADES repository](https://gi
 
 Some scripts have been copied and modified. We have also copied over the model files from TRADES.
 
-The maxent model used to generate the input data for the SVM (which itself uses libsvm) is the ready-to-download CIFAR-10 model from the TRADES repository.
+The maxent model used to generate the input data for the SVM (which is implemented by [libsvm](https://github.com/cjlin1/libsvm)) is the ready-to-download CIFAR-10 model from the TRADES repository.
 
 Scripts running AutoAttack are used to generate adversarial data that will then be passed through the TRADES neural network to produce the raw predictions (logits) for each class. This data will then be used as input to the SVM step.
 
