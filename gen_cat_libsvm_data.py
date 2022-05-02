@@ -47,6 +47,8 @@ for active_class in range(0,10):
     for i, outfile in enumerate(outputs):
         total = 0
         acc = 0
+        total_from_class = 0
+        total_from_not_class = 0
         datapoints = len(os.listdir(input_dirs[i]))
         with open("libsvm_" + named_classes[active_class] + "_" + outfile, 'w') as libsvm_data:
             for batch_idx, (data, target) in enumerate(test_loader):
@@ -60,6 +62,10 @@ for active_class in range(0,10):
                 pred_probab = model(data)
                 y_pred1 = pred_probab.argmax(1)
                 label = target.tolist()[0]
+                if label != active_class and total_from_not_class >= total_from_class + 5:
+                    # skip some non-class data points, otherwise we
+                    # have too many non-class datapoints and too little active_class datapoints
+                    continue
 
                 # get the accuracy of the model on the cat label (as if we are doing binary classification)
                 total = total + 1
@@ -68,10 +74,13 @@ for active_class in range(0,10):
 
                 pp = pred_probab.tolist()[0]
                 libsvm_label = None
+            
                 if label == active_class:
                     libsvm_label = "+1"
+                    total_from_class = total_from_class + 1
                 else:
                     libsvm_label = "-1"
+                    total_from_not_class = total_from_not_class + 1
 
                 label_features = f"{libsvm_label} 1:{pp[0]} 2:{pp[1]} 3:{pp[2]} 4:{pp[3]} 5:{pp[4]} 6:{pp[5]} 7:{pp[6]} 8:{pp[7]} 9:{pp[8]} 10:{pp[9]}"
 
