@@ -30,7 +30,7 @@ testset = torchvision.datasets.CIFAR10(root='../data', train=False, download=Tru
 test_loader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle=False, **kwargs)
 
 model = WideResNet()
-model.load_state_dict(torch.load('/Users/olgavrou/Documents/NYU/Project/auto-attack/model_cifar_wrn.pt', map_location=torch.device('cpu')))
+model.load_state_dict(torch.load('model_cifar_wrn.pt', map_location=torch.device('cpu')))
 
 model.eval()
 import math
@@ -69,7 +69,8 @@ for active_class in range(0,10):
 
                 # get the accuracy of the model on the cat label (as if we are doing binary classification)
                 total = total + 1
-                if (label == active_class and label == y_pred1.tolist()[0]) or (label != active_class and y_pred1.tolist()[0] != active_class):
+                model_pred = y_pred1.tolist()[0]
+                if (label == active_class and label == model_pred) or (label != active_class and model_pred != active_class):
                     acc = acc + 1
 
                 pp = pred_probab.tolist()[0]
